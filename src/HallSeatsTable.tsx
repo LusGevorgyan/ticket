@@ -286,7 +286,7 @@ export default function HallSeatsTable() {
                       <th style={styles.th}>Շարք</th>
                       <th style={styles.th}>Տեղ</th>
                       <th style={styles.th}>Գին</th>
-                      <th style={{ ...styles.th, textAlign: 'right' }}>ID</th>
+                      {/* <th style={{ ...styles.th, textAlign: 'right' }}>ID</th> */}
                     </tr>
                   </thead>
                   <tbody>
@@ -295,7 +295,7 @@ export default function HallSeatsTable() {
                         <td style={styles.td}>{place.Row}</td>
                         <td style={styles.td}>{place.Seat}</td>
                         <td style={{ ...styles.td, fontWeight: '600', color: '#16a34a' }}>{place.Price.toLocaleString()} ֏</td>
-                        <td style={{ ...styles.td, textAlign: 'right', fontSize: '12px', color: 'var(--text-muted)', fontFamily: 'monospace' }}>{place.Id}</td>
+                        {/* <td style={{ ...styles.td, textAlign: 'right', fontSize: '12px', color: 'var(--text-muted)', fontFamily: 'monospace' }}>{place.Id}</td> */}
                       </tr>
                     ))}
                   </tbody>
