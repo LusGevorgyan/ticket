@@ -1,14 +1,39 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo } from 'react';
+
+// Սահմանում ենք TypeScript ինտերֆեյսներ տվյալների համար
+interface Place {
+  Id: string;
+  Row: string;
+  Seat: string;
+  Price: number;
+}
+
+interface Level {
+  LevelId: string;
+  LevelName: string;
+  Places: Place[];
+}
+
+interface HallData {
+  HallName: string;
+  MaxSelectedSeats: number;
+  Levels: Level[];
+}
+
+interface FlatPlace extends Place {
+  LevelId: string;
+  LevelName: string;
+}
 
 export default function HallSeatsTable() {
-  const [hallData, setHallData] = useState(null);
+  const [hallData, setHallData] = useState<HallData | null>(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState<string | null>(null);
 
   // Ֆիլտրերի state-եր
-  const [selectedSector, setSelectedSector] = useState('ALL');
-  const [selectedPrice, setSelectedPrice] = useState('ALL');
-  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedSector, setSelectedSector] = useState<string>('ALL');
+  const [selectedPrice, setSelectedPrice] = useState<string>('ALL');
+  const [searchQuery, setSearchQuery] = useState<string>('');
 
   useEffect(() => {
     async function fetchHallData() {
@@ -63,14 +88,18 @@ export default function HallSeatsTable() {
 
         if (endIndex !== -1) {
           const jsonString = text.substring(startIndex, endIndex + 1);
-          const parsedData = JSON.parse(jsonString);
+          const parsedData: HallData = JSON.parse(jsonString);
           setHallData(parsedData);
         } else {
           throw new Error("JSON-ի փակվող փակագիծը չգտնվեց");
         }
-      } catch (err) {
-        console.error("Սխալ:", err.message);
-        setError(err.message);
+      } catch (err: unknown) {
+        console.error("Սխալ:", err);
+        if (err instanceof Error) {
+          setError(err.message);
+        } else {
+          setError("Անհայտ սխալ");
+        }
       } finally {
         setLoading(false);
       }
@@ -80,11 +109,11 @@ export default function HallSeatsTable() {
   }, []);
 
   // Հարթ զանգված բոլոր տեղերի համար
-  const allPlaces = useMemo(() => {
+  const allPlaces = useMemo<FlatPlace[]>(() => {
     if (!hallData?.Levels) return [];
-    let list = [];
-    hallData.Levels.forEach(level => {
-      level.Places?.forEach(place => {
+    let list: FlatPlace[] = [];
+    hallData.Levels.forEach((level) => {
+      level.Places?.forEach((place) => {
         list.push({
           ...place,
           LevelId: level.LevelId,
@@ -96,16 +125,16 @@ export default function HallSeatsTable() {
   }, [hallData]);
 
   const uniqueSectors = useMemo(() => {
-    return [...new Set(allPlaces.map(p => p.LevelName))];
+    return [...new Set(allPlaces.map((p) => p.LevelName))];
   }, [allPlaces]);
 
   const uniquePrices = useMemo(() => {
-    return [...new Set(allPlaces.map(p => p.Price))].sort((a, b) => a - b);
+    return [...new Set(allPlaces.map((p) => p.Price))].sort((a, b) => a - b);
   }, [allPlaces]);
 
   // Ֆիլտրված տեղերը
   const filteredPlaces = useMemo(() => {
-    return allPlaces.filter(place => {
+    return allPlaces.filter((place) => {
       const matchSector = selectedSector === 'ALL' || place.LevelName === selectedSector;
       const matchPrice = selectedPrice === 'ALL' || place.Price.toString() === selectedPrice;
       const matchSearch = searchQuery === '' || 
@@ -131,6 +160,7 @@ export default function HallSeatsTable() {
       <div style={styles.header}>
         <div>
           <h1 style={{ margin: 0, fontSize: '22px', fontWeight: 'bold', color: '#1f2937' }}>{hallData?.HallName}</h1>
+          <p style={{ margin: '4px 0 0 0', fontSize: '13px', color: '#6b7280' }}>Առավելագույն ընտրվող տեղերի քանակը՝ {hallData?.MaxSelectedSeats}</p>
         </div>
       </div>
 
@@ -215,7 +245,7 @@ export default function HallSeatsTable() {
               ))
             ) : (
               <tr>
-                <td colSpan="5" style={{ padding: '32px', textAlign: 'center', color: '#9ca3af' }}>
+                <td colSpan={5} style={{ padding: '32px', textAlign: 'center', color: '#9ca3af' }}>
                   Տվյալներ չեն գտնվել նշված ֆիլտրերով
                 </td>
               </tr>
@@ -227,12 +257,12 @@ export default function HallSeatsTable() {
   );
 }
 
-// Inline Styles Օբյեկտ
+// Օգտագործում ենք `as const` TypeScript-ի ոճային (CSSProperties) սխալները բացառելու համար
 const styles = {
   container: {
     padding: '24px',
+    maxWidth: '1100px',
     margin: '0 auto',
-    width: '100%',
     fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
     backgroundColor: '#f9fafb',
     minHeight: '100vh',
@@ -250,6 +280,7 @@ const styles = {
     gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
     gap: '16px',
     marginBottom: '20px',
+    backgroundColor: '#ffffff',
     padding: '20px',
     borderRadius: '12px',
     border: '1px solid #e5e7eb',
@@ -268,6 +299,7 @@ const styles = {
     padding: '10px 12px',
     border: '1px solid #d1d5db',
     borderRadius: '8px',
+    backgroundColor: '#f9fafb',
     fontSize: '14px',
     outline: 'none',
     boxSizing: 'border-box'
@@ -277,6 +309,7 @@ const styles = {
     padding: '10px 12px',
     border: '1px solid #d1d5db',
     borderRadius: '8px',
+    backgroundColor: '#f9fafb',
     fontSize: '14px',
     outline: 'none',
     boxSizing: 'border-box'
@@ -284,6 +317,7 @@ const styles = {
   button: {
     width: '100%',
     padding: '10px 16px',
+    backgroundColor: '#f3f4f6',
     color: '#374151',
     fontSize: '14px',
     fontWeight: '600',
@@ -321,4 +355,4 @@ const styles = {
     padding: '14px 16px',
     borderBottom: '1px solid #f3f4f6'
   }
-};
+} as const;
