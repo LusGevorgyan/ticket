@@ -264,7 +264,7 @@ export default function HallSeatsTable() {
 
       {/* Արդյունքների քանակ */}
       <div style={styles.resultsCount}>
-        Գտնվեց հասանելի տեղ՝ <strong style={{ color: 'var(--text-main)' }}>{filteredPlaces.length}</strong>
+        Մնացել է հասանելի <strong style={{ color: 'var(--text-main)' }}>{filteredPlaces.length}</strong> տեղ
       </div>
 
       {/* Խմբավորված աղյուսակներ ըստ սեկտորների */}
@@ -449,7 +449,9 @@ const styles = {
     fontWeight: '600',
     position: 'sticky' as const,
     top: 0,
-    zIndex: 10
+    zIndex: 10,
+    width: '100%',
+
   },
   tr: {
     borderBottom: '1px solid var(--border-color)'
