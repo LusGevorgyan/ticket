@@ -1,6 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
 
-// Սահմանում ենք TypeScript ինտերֆեյսներ տվյալների համար
 interface Place {
   Id: string;
   Row: string;
@@ -30,7 +29,6 @@ export default function HallSeatsTable() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Ֆիլտրերի state-եր
   const [selectedSector, setSelectedSector] = useState<string>('ALL');
   const [selectedPrice, setSelectedPrice] = useState<string>('ALL');
   const [searchQuery, setSearchQuery] = useState<string>('');
@@ -108,7 +106,6 @@ export default function HallSeatsTable() {
     fetchHallData();
   }, []);
 
-  // Հարթ զանգված բոլոր տեղերի համար
   const allPlaces = useMemo<FlatPlace[]>(() => {
     if (!hallData?.Levels) return [];
     let list: FlatPlace[] = [];
@@ -132,7 +129,6 @@ export default function HallSeatsTable() {
     return [...new Set(allPlaces.map((p) => p.Price))].sort((a, b) => a - b);
   }, [allPlaces]);
 
-  // Ֆիլտրված տեղերը
   const filteredPlaces = useMemo(() => {
     return allPlaces.filter((place) => {
       const matchSector = selectedSector === 'ALL' || place.LevelName === selectedSector;
@@ -145,33 +141,84 @@ export default function HallSeatsTable() {
     });
   }, [allPlaces, selectedSector, selectedPrice, searchQuery]);
 
+  const groupedPlaces = useMemo(() => {
+    const groups: { [sector: string]: FlatPlace[] } = {};
+    filteredPlaces.forEach(place => {
+      if (!groups[place.LevelName]) {
+        groups[place.LevelName] = [];
+      }
+      groups[place.LevelName].push(place);
+    });
+    return groups;
+  }, [filteredPlaces]);
+
   const clearFilters = () => {
     setSelectedSector('ALL');
     setSelectedPrice('ALL');
     setSearchQuery('');
   };
 
-  if (loading) return <div style={{ padding: '32px', textAlign: 'center', color: '#6b7280', fontFamily: 'sans-serif' }}>Բեռնվում է տվյալները...</div>;
-  if (error) return <div style={{ padding: '32px', textAlign: 'center', color: '#ef4444', fontFamily: 'sans-serif' }}>Սխալ՝ {error}</div>;
+  if (loading) return <div style={styles.centerMessage}>Բեռնվում է տվյալները...</div>;
+  if (error) return <div style={{ ...styles.centerMessage, color: '#ef4444' }}>Սխալ՝ {error}</div>;
 
   return (
     <div style={styles.container}>
-      {/* Վերնագիր */}
+      {/* Դինամիկ թեմաների կարգավորում (Light / Dark mode ավտոմատ անցում) */}
+      <style>{`
+        :root {
+          --bg-main: #f9fafb;
+          --bg-card: #ffffff;
+          --bg-header: #f3f4f6;
+          --text-main: #1f2937;
+          --text-muted: #6b7280;
+          --border-color: #e5e7eb;
+          --scrollbar-track: #f1f5f9;
+          --scrollbar-thumb: #cbd5e1;
+        }
+
+        @media (prefers-color-scheme: dark) {
+          :root {
+            --bg-main: #111827;
+            --bg-card: #1f2937;
+            --bg-header: #374151;
+            --text-main: #f9fafb;
+            --text-muted: #9ca3af;
+            --border-color: #374151;
+            --scrollbar-track: #1f2937;
+            --scrollbar-thumb: #4b5563;
+          }
+        }
+
+        ::-webkit-scrollbar {
+          width: 6px;
+          height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+          background: var(--scrollbar-track);
+          border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb {
+          background: var(--scrollbar-thumb);
+          border-radius: 4px;
+        }
+      `}</style>
+
+      {/* Վերնագիր
       <div style={styles.header}>
         <div>
-          <h1 style={{ margin: 0, fontSize: '22px', fontWeight: 'bold', color: '#1f2937' }}>{hallData?.HallName}</h1>
-          <p style={{ margin: '4px 0 0 0', fontSize: '13px', color: '#6b7280' }}>Առավելագույն ընտրվող տեղերի քանակը՝ {hallData?.MaxSelectedSeats}</p>
+          <h1 style={styles.title}>{hallData?.HallName}</h1>
+          <p style={styles.subtitle}>Առավելագույն ընտրվող տեղերի քանակը՝ {hallData?.MaxSelectedSeats}</p>
         </div>
-      </div>
+      </div> */}
 
       {/* Ֆիլտրերի վահանակ */}
       <div style={styles.filtersPanel}>
-        <div>
+        <div style={styles.filterItem}>
           <label style={styles.label}>Սեկտոր</label>
           <select 
             value={selectedSector} 
             onChange={(e) => setSelectedSector(e.target.value)}
-            style={styles.select}
+            style={styles.control}
           >
             <option value="ALL">Բոլոր սեկտորները</option>
             {uniqueSectors.map((sector, index) => (
@@ -180,12 +227,12 @@ export default function HallSeatsTable() {
           </select>
         </div>
 
-        <div>
+        <div style={styles.filterItem}>
           <label style={styles.label}>Գին</label>
           <select 
             value={selectedPrice} 
             onChange={(e) => setSelectedPrice(e.target.value)}
-            style={styles.select}
+            style={styles.control}
           >
             <option value="ALL">Բոլոր գները</option>
             {uniquePrices.map((price, index) => (
@@ -194,18 +241,18 @@ export default function HallSeatsTable() {
           </select>
         </div>
 
-        <div>
+        <div style={styles.filterItem}>
           <label style={styles.label}>Որոնել (Շարք / Տեղ)</label>
           <input 
             type="text" 
             placeholder="Օր. շարք 13, տեղ 19..." 
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            style={styles.input}
+            style={styles.control}
           />
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'flex-end' }}>
+        <div style={{ ...styles.filterItem, display: 'flex', alignItems: 'flex-end', justifyContent: 'end' }}>
           <button 
             onClick={clearFilters}
             style={styles.button}
@@ -216,143 +263,208 @@ export default function HallSeatsTable() {
       </div>
 
       {/* Արդյունքների քանակ */}
-      <div style={{ marginBottom: '12px', fontSize: '13px', color: '#4b5563' }}>
-        Գտնվեց հասանելի տեղ՝ <strong style={{ color: '#111827' }}>{filteredPlaces.length}</strong>
+      <div style={styles.resultsCount}>
+        Գտնվեց հասանելի տեղ՝ <strong style={{ color: 'var(--text-main)' }}>{filteredPlaces.length}</strong>
       </div>
 
-      {/* Աղյուսակ */}
-      <div style={styles.tableContainer}>
-        <table style={styles.table}>
-          <thead>
-            <tr>
-              <th style={styles.th}>Սեկտոր</th>
-              <th style={styles.th}>Շարք</th>
-              <th style={styles.th}>Տեղ</th>
-              <th style={styles.th}>Գին</th>
-              <th style={{ ...styles.th, textAlign: 'right' }}>ID</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filteredPlaces.length > 0 ? (
-              filteredPlaces.map((place) => (
-                <tr key={place.Id} style={{ backgroundColor: '#ffffff' }}>
-                  <td style={{ ...styles.td, fontWeight: '500', color: '#111827' }}>{place.LevelName}</td>
-                  <td style={styles.td}>{place.Row}</td>
-                  <td style={styles.td}>{place.Seat}</td>
-                  <td style={{ ...styles.td, fontWeight: '600', color: '#16a34a' }}>{place.Price.toLocaleString()} ֏</td>
-                  <td style={{ ...styles.td, textAlign: 'right', fontSize: '12px', color: '#9ca3af', fontFamily: 'monospace' }}>{place.Id}</td>
-                </tr>
-              ))
-            ) : (
-              <tr>
-                <td colSpan={5} style={{ padding: '32px', textAlign: 'center', color: '#9ca3af' }}>
-                  Տվյալներ չեն գտնվել նշված ֆիլտրերով
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
+      {/* Խմբավորված աղյուսակներ ըստ սեկտորների */}
+      <div style={styles.wrapperContainer}>
+        {Object.keys(groupedPlaces).length > 0 ? (
+          Object.entries(groupedPlaces).map(([sectorName, places]) => (
+            <div key={sectorName} style={styles.sectorSection}>
+              {/* Սեկտորի Վերնագիր */}
+              <div style={styles.sectorHeader}>
+                <span>{sectorName}</span>
+                <span style={styles.sectorBadge}>{places.length} տեղ</span>
+              </div>
+
+              {/* Աղյուսակ տվյալ սեկտորի համար */}
+              <div style={styles.tableContainer}>
+                <table style={styles.table}>
+                  <thead>
+                    <tr>
+                      <th style={styles.th}>Շարք</th>
+                      <th style={styles.th}>Տեղ</th>
+                      <th style={styles.th}>Գին</th>
+                      <th style={{ ...styles.th, textAlign: 'right' }}>ID</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {places.map((place) => (
+                      <tr key={place.Id} style={styles.tr}>
+                        <td style={styles.td}>{place.Row}</td>
+                        <td style={styles.td}>{place.Seat}</td>
+                        <td style={{ ...styles.td, fontWeight: '600', color: '#16a34a' }}>{place.Price.toLocaleString()} ֏</td>
+                        <td style={{ ...styles.td, textAlign: 'right', fontSize: '12px', color: 'var(--text-muted)', fontFamily: 'monospace' }}>{place.Id}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          ))
+        ) : (
+          <div style={styles.noData}>
+            Տվյալներ չեն գտնվել նշված ֆիլտրերով
+          </div>
+        )}
       </div>
     </div>
   );
 }
 
-// Օգտագործում ենք `as const` TypeScript-ի ոճային (CSSProperties) սխալները բացառելու համար
 const styles = {
   container: {
-    padding: '24px',
+    padding: '16px',
     maxWidth: '1100px',
     margin: '0 auto',
     fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-    backgroundColor: '#f9fafb',
+    backgroundColor: 'var(--bg-main)',
+    color: 'var(--text-main)',
     minHeight: '100vh',
-    borderRadius: '16px',
-    boxSizing: 'border-box'
+    boxSizing: 'border-box' as const
+  },
+  centerMessage: {
+    padding: '48px 16px',
+    textAlign: 'center' as const,
+    color: 'var(--text-muted)',
+    fontFamily: 'sans-serif',
+    fontSize: '16px'
   },
   header: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: '24px'
+    marginBottom: '20px'
+  },
+  title: {
+    margin: 0,
+    fontSize: '20px',
+    fontWeight: '700',
+    color: 'var(--text-main)'
+  },
+  subtitle: {
+    margin: '4px 0 0 0',
+    fontSize: '13px',
+    color: 'var(--text-muted)'
   },
   filtersPanel: {
     display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-    gap: '16px',
-    marginBottom: '20px',
-    backgroundColor: '#ffffff',
-    padding: '20px',
+    gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
+    gap: '12px',
+    marginBottom: '16px',
+    backgroundColor: 'var(--bg-card)',
+    padding: '16px',
     borderRadius: '12px',
-    border: '1px solid #e5e7eb',
-    boxShadow: '0 1px 2px rgba(0,0,0,0.05)'
+    border: '1px solid var(--border-color)',
+    boxShadow: '0 1px 2px rgba(0,0,0,0.04)',
+    boxSizing: 'border-box' as const
+  },
+  filterItem: {
+    display: 'flex',
+    flexDirection: 'column' as const
   },
   label: {
     display: 'block',
     fontSize: '11px',
     fontWeight: '700',
-    textTransform: 'uppercase',
-    color: '#6b7280',
+    textTransform: 'uppercase' as const,
+    color: 'var(--text-muted)',
     marginBottom: '6px'
   },
-  select: {
+  control: {
     width: '100%',
     padding: '10px 12px',
-    border: '1px solid #d1d5db',
+    border: '1px solid var(--border-color)',
     borderRadius: '8px',
-    backgroundColor: '#f9fafb',
+    backgroundColor: 'var(--bg-card)',
+    color: 'var(--text-main)',
     fontSize: '14px',
     outline: 'none',
-    boxSizing: 'border-box'
-  },
-  input: {
-    width: '100%',
-    padding: '10px 12px',
-    border: '1px solid #d1d5db',
-    borderRadius: '8px',
-    backgroundColor: '#f9fafb',
-    fontSize: '14px',
-    outline: 'none',
-    boxSizing: 'border-box'
+    boxSizing: 'border-box' as const
   },
   button: {
     width: '100%',
     padding: '10px 16px',
-    backgroundColor: '#f3f4f6',
-    color: '#374151',
+    backgroundColor: 'var(--bg-header)',
+    color: 'var(--text-main)',
     fontSize: '14px',
     fontWeight: '600',
-    border: '1px solid #d1d5db',
+    border: '1px solid var(--border-color)',
     borderRadius: '8px',
-    cursor: 'pointer'
+    cursor: 'pointer',
+    boxSizing: 'border-box' as const
+  },
+  resultsCount: {
+    marginBottom: '16px',
+    fontSize: '13px',
+    color: 'var(--text-muted)',
+    paddingLeft: '4px'
+  },
+  wrapperContainer: {
+    display: 'flex',
+    flexDirection: 'column' as const,
+    gap: '20px'
+  },
+  sectorSection: {
+    backgroundColor: 'var(--bg-card)',
+    borderRadius: '12px',
+    border: '1px solid var(--border-color)',
+    overflow: 'hidden',
+    boxShadow: '0 1px 3px rgba(0,0,0,0.04)'
+  },
+  sectorHeader: {
+    backgroundColor: 'var(--bg-header)',
+    padding: '12px 16px',
+    fontSize: '15px',
+    fontWeight: '700',
+    color: 'var(--text-main)',
+    borderBottom: '1px solid var(--border-color)',
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center'
+  },
+  sectorBadge: {
+    backgroundColor: 'var(--border-color)',
+    color: 'var(--text-main)',
+    fontSize: '12px',
+    fontWeight: '600',
+    padding: '2px 8px',
+    borderRadius: '12px'
   },
   tableContainer: {
-    overflowX: 'auto',
-    maxHeight: '550px',
-    overflowY: 'auto',
-    border: '1px solid #e5e7eb',
-    borderRadius: '12px',
-    backgroundColor: '#ffffff',
-    boxShadow: '0 1px 3px rgba(0,0,0,0.05)'
+    overflowX: 'auto' as const,
+    maxHeight: '400px',
+    overflowY: 'auto' as const
   },
   table: {
     width: '100%',
-    borderCollapse: 'collapse',
-    textAlign: 'left',
+    borderCollapse: 'collapse' as const,
+    textAlign: 'left' as const,
     fontSize: '14px',
-    color: '#4b5563'
+    color: 'var(--text-main)',
+    minWidth: '500px'
   },
   th: {
-    padding: '14px 16px',
-    borderBottom: '1px solid #e5e7eb',
-    backgroundColor: '#f3f4f6',
-    color: '#374151',
+    padding: '10px 16px',
+    borderBottom: '1px solid var(--border-color)',
+    backgroundColor: 'var(--bg-header)',
+    color: 'var(--text-main)',
     fontWeight: '600',
-    position: 'sticky',
+    position: 'sticky' as const,
     top: 0,
     zIndex: 10
   },
+  tr: {
+    borderBottom: '1px solid var(--border-color)'
+  },
   td: {
-    padding: '14px 16px',
-    borderBottom: '1px solid #f3f4f6'
+    padding: '10px 16px',
+    color: 'var(--text-main)'
+  },
+  noData: {
+    padding: '40px',
+    textAlign: 'center' as const,
+    color: 'var(--text-muted)',
+    backgroundColor: 'var(--bg-card)',
+    borderRadius: '12px',
+    border: '1px solid var(--border-color)'
   }
 } as const;
