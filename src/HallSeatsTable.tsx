@@ -440,7 +440,6 @@ const styles = {
     textAlign: 'left' as const,
     fontSize: '14px',
     color: 'var(--text-main)',
-    minWidth: '500px'
   },
   th: {
     padding: '10px 16px',
