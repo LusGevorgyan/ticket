@@ -163,7 +163,6 @@ export default function HallSeatsTable() {
 
   return (
     <div style={styles.container}>
-      {/* Դինամիկ թեմաների կարգավորում (Light / Dark mode ավտոմատ անցում) */}
       <style>{`
         :root {
           --bg-main: #f9fafb;
@@ -202,14 +201,6 @@ export default function HallSeatsTable() {
           border-radius: 4px;
         }
       `}</style>
-
-      {/* Վերնագիր
-      <div style={styles.header}>
-        <div>
-          <h1 style={styles.title}>{hallData?.HallName}</h1>
-          <p style={styles.subtitle}>Առավելագույն ընտրվող տեղերի քանակը՝ {hallData?.MaxSelectedSeats}</p>
-        </div>
-      </div> */}
 
       {/* Ֆիլտրերի վահանակ */}
       <div style={styles.filtersPanel}>
@@ -286,7 +277,6 @@ export default function HallSeatsTable() {
                       <th style={styles.th}>Շարք</th>
                       <th style={styles.th}>Տեղ</th>
                       <th style={styles.th}>Գին</th>
-                      {/* <th style={{ ...styles.th, textAlign: 'right' }}>ID</th> */}
                     </tr>
                   </thead>
                   <tbody>
@@ -295,7 +285,6 @@ export default function HallSeatsTable() {
                         <td style={styles.td}>{place.Row}</td>
                         <td style={styles.td}>{place.Seat}</td>
                         <td style={{ ...styles.td, fontWeight: '600', color: '#16a34a' }}>{place.Price.toLocaleString()} ֏</td>
-                        {/* <td style={{ ...styles.td, textAlign: 'right', fontSize: '12px', color: 'var(--text-muted)', fontFamily: 'monospace' }}>{place.Id}</td> */}
                       </tr>
                     ))}
                   </tbody>
@@ -440,6 +429,7 @@ const styles = {
     textAlign: 'left' as const,
     fontSize: '14px',
     color: 'var(--text-main)',
+    tableLayout: 'fixed' as const, // Սա ապահովում է, որ սյունակների չափերը խստորեն հավասար լինեն
   },
   th: {
     padding: '10px 16px',
@@ -450,15 +440,16 @@ const styles = {
     position: 'sticky' as const,
     top: 0,
     zIndex: 10,
-    width: '100%',
-
+    width: '33.33%', // Յուրաքանչյուր սյունակ զբաղեցնում է հավասար 33.33%
   },
   tr: {
     borderBottom: '1px solid var(--border-color)'
   },
   td: {
     padding: '10px 16px',
-    color: 'var(--text-main)'
+    color: 'var(--text-main)',
+    width: '33.33%', // Բջիջների լայնությունը նույնպես հավասարեցվում է
+    wordBreak: 'break-word' as const
   },
   noData: {
     padding: '40px',
